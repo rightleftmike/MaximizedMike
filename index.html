@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Fitness • Meals • Tasks Tracker</title>
+<title>Fitness • Meals • Tasks • Weekly Tracker</title>
+<link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
@@ -29,12 +30,16 @@
   .muted { opacity:.65; }
   ul.clean { margin:6px 0 0 18px; }
   ul.clean li { margin:2px 0; }
+  .barWrap { width:100%; border:1px solid #eee; border-radius:10px; height:12px; background:#fafafa; overflow:hidden; }
+  .bar { height:100%; width:0%; background:#0a84ff; transition:width .3s; }
+  .kpi { display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:8px; }
+  @media (min-width:720px){ .kpi { grid-template-columns: repeat(4, minmax(0,1fr)); } }
 </style>
 </head>
 <body>
-  <h1>Fitness • Meals • Tasks Tracker</h1>
+  <h1>Fitness • Meals • Tasks • Weekly Tracker</h1>
 
-  <!-- ===== Daily Habit Quick Log ===== -->
+  <!-- ===== Daily Habits ===== -->
   <div class="card">
     <h2>Daily Habits</h2>
     <div class="row">
@@ -61,7 +66,7 @@
     <div class="toggle"><input id="hydration" type="checkbox"> <span>Hydration 2–3 L (+2)</span></div>
     <div class="toggle"><input id="wholefood" type="checkbox"> <span>Whole‑food dinner (protein + veg) (+2)</span></div>
 
-    <!-- Mindfulness / Spiritual habits (new tiers) -->
+    <!-- Mind/Spirit practice tiers (per your spec) -->
     <div class="row">
       <div>
         <label for="mindType">Mind/Spirit Practice</label>
@@ -84,7 +89,7 @@
       </div>
     </div>
 
-    <!-- Focused task session buckets -->
+    <!-- Focused deep‑work session -->
     <label for="taskBucket">Focused Task Session</label>
     <select id="taskBucket">
       <option value="0">None (0)</option>
@@ -101,22 +106,17 @@
     <div id="saveMsg" class="small"></div>
   </div>
 
-  <!-- ===== Weekly Plan (Meals + Workouts + Alcohol rules) ===== -->
+  <!-- ===== Weekly Plan + Auto-add ===== -->
   <div class="card">
-    <h2>Weekly Plan</h2>
-    <div class="row">
-      <div>
-        <label for="planDay">View plan for</label>
-        <select id="planDay"></select>
-      </div>
-      <div style="display:flex; align-items:flex-end;">
-        <button class="btn primary" id="addPlanToday">Add TODAY’s plan as tasks</button>
-      </div>
+    <h2>Weekly Plan & Auto‑Add</h2>
+    <div class="flex">
+      <button class="btn primary" id="addPlanToday">Add TODAY’s plan as tasks</button>
+      <button class="btn" id="addPlanWeek">Add THIS WEEK (Mon–Sun)</button>
+      <span class="small muted">Auto-add includes: Smoothie, Hydration, Whole‑food dinner, day’s Workout, Alcohol control (Mon/Tue/Wed/Sun), and <b>Meditation (min +2)</b> every day.</span>
     </div>
-    <div id="planView"></div>
   </div>
 
-  <!-- ===== Task Scheduler (custom tasks) ===== -->
+  <!-- ===== Custom Task Scheduler ===== -->
   <div class="card">
     <h2>Add Custom Task</h2>
     <div class="row">
@@ -165,10 +165,10 @@
       <button class="btn primary" id="addTask">Add Task</button>
       <button class="btn danger" id="clearTasks">Delete ALL Tasks</button>
     </div>
-    <div class="small muted">Meditation/Gratitude/Journaling/Prayer points: 2/3/5 (for &lt;15 / 15–29 / ≥45). Other tasks: 2/4/6 (for &lt;30 / 30–59 / ≥60).</div>
+    <div class="small muted">Meditation/Gratitude/Journaling/Prayer: +2/+3/+5 (for &lt;15 / 15–29 / ≥45). Other tasks: +2/+4/+6 (for &lt;30 / 30–59 / ≥60).</div>
   </div>
 
-  <!-- ===== Today + Week Schedule ===== -->
+  <!-- ===== Today + Week Schedules ===== -->
   <div class="card">
     <h2>Today’s Schedule</h2>
     <div id="todayList"></div>
@@ -178,11 +178,21 @@
     <div id="weekList"></div>
   </div>
 
-  <!-- ===== Weekly Summary ===== -->
+  <!-- ===== Weekly Points Tracker ===== -->
   <div class="card">
-    <h2>This Week Summary</h2>
-    <div class="small">Week starts Monday • Weight goals: 199 lb (Tier 1), 180 lb (Tier 2)</div>
-    <div id="weeklyStats" class="flex" style="margin-top:10px;"></div>
+    <h2>Weekly Points Tracker</h2>
+    <div class="small">Week starts Monday • Weekly tiers: ❌ &lt;60 | 🎯 60–79 | ⭐ 80–89 | 🏆 ≥90</div>
+    <div class="kpi" style="margin-top:10px;">
+      <div><span class="pill">Total (Habits + Completed Tasks)</span><div class="barWrap"><div id="barTotal" class="bar"></div></div><div id="kpiTotal" class="small"></div></div>
+      <div><span class="pill">Tier</span><div id="kpiTier" class="small"></div></div>
+      <div><span class="pill">To 🎯 (60)</span><div id="kpiTo60" class="small"></div></div>
+      <div><span class="pill">To ⭐ (80)</span><div id="kpiTo80" class="small"></div></div>
+      <div><span class="pill">To 🏆 (90)</span><div id="kpiTo90" class="small"></div></div>
+      <div><span class="pill">Days Left</span><div id="kpiDaysLeft" class="small"></div></div>
+      <div><span class="pill">Per‑Day for 🎯</span><div id="kpiPpd60" class="small"></div></div>
+      <div><span class="pill">Per‑Day for ⭐</span><div id="kpiPpd80" class="small"></div></div>
+      <div><span class="pill">Per‑Day for 🏆</span><div id="kpiPpd90" class="small"></div></div>
+    </div>
   </div>
 
   <!-- ===== Data tools ===== -->
@@ -196,13 +206,13 @@
       </label>
       <button class="btn warn" id="wipeAll">Wipe All Data</button>
     </div>
-    <div class="small" style="margin-top:6px;">On‑device only (localStorage). Export CSV to back up.</div>
+    <div class="small" style="margin-top:6px;">On‑device (localStorage). Export CSV to back up.</div>
   </div>
 
 <script>
 /* ===== Settings & Helpers ===== */
-const APP_KEY = "fit-meal-workout-v1";
-const GOAL1 = 199, GOAL2 = 180;
+const APP_KEY = "fit-meal-tasks-weekly-v2";
+const GOAL1 = 199, GOAL2 = 180; // weight goals (kept for future; shown previously)
 const $ = s => document.querySelector(s);
 function load(){ try{return JSON.parse(localStorage.getItem(APP_KEY)||"{}")}catch{return{}} }
 function save(o){ localStorage.setItem(APP_KEY, JSON.stringify(o)); }
@@ -211,94 +221,27 @@ function fmtDate(d){ return d.toISOString().slice(0,10); }
 function mondayOf(date){ const d=new Date(date); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(0,0,0,0); return d; }
 function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
 function timeToNum(t){ if(!t) return 24*60+1; const [h,m]=t.split(":").map(Number); return h*60+m; }
-function labelForDuration(code){ return code==="LT30"?"<30 min":code==="M30_59"?"30–59 min":"≥60 min"; }
+function labelForDuration(code){ return code==="LT30"?"<30 min":code==="M30_59"?"30–59 min":code==="GTE60"?"≥60 min":""; }
+function clamp(n,a,b){ return Math.max(a, Math.min(b, n)); }
 
-/* ===== Base state ===== */
+/* ===== State ===== */
 let state = load();
-if(!state.days) state.days = {};
-if(!state.tasks) state.tasks = [];
+if(!state.days) state.days = {};   // by date: habits + weight
+if(!state.tasks) state.tasks = []; // array of tasks
 
-/* ===== Weekly Plan (Meals + Workouts + Alcohol) =====
-  Points logic for auto-add:
-  - Smoothie +2, Hydration +2, Whole-food +2
-  - Workout: Walk/Yoga +4, Lift +5
-  - Alcohol control +3 only Mon/Tue/Wed/Sun (≤2 drinks)
-*/
-const WEEK_PLAN = {
-  Mon: {
-    workout: { name:"DEBS Walk 2.5 mi (~50 min)", pts:4 },
-    meals: {
-      breakfast:"High-protein (eggs/yogurt/oats)",
-      lunch:"Upgraded Smoothie",
-      dinner:"Lean protein + veggies + carbs"
-    },
-    alcohol:"0–2 drinks max",
-    autoTasks: ["Smoothie","Hydration","Whole-food dinner","Alcohol control"]
-  },
-  Tue: {
-    workout: { name:"Full-body Strength (Day 1)", pts:5 },
-    meals: {
-      breakfast:"Protein + carbs (pre-lift)",
-      lunch:"Upgraded Smoothie",
-      dinner:"High-protein dinner"
-    },
-    alcohol:"0–2 drinks max",
-    autoTasks: ["Smoothie","Hydration","Whole-food dinner","Alcohol control"]
-  },
-  Wed: {
-    workout: { name:"Yoga (Evening 30–40 min slow flow)", pts:4 },
-    meals: {
-      breakfast:"Balanced breakfast",
-      lunch:"Upgraded Smoothie",
-      dinner:"Whole-food dinner"
-    },
-    alcohol:"0–2 drinks max",
-    autoTasks: ["Smoothie","Hydration","Whole-food dinner","Alcohol control"]
-  },
-  Thu: {
-    workout: { name:"DEBS Walk 2.5 mi (~50 min)", pts:4 },
-    meals: {
-      breakfast:"Eggs + spinach + avocado",
-      lunch:"Upgraded Smoothie",
-      dinner:"Tacos or lean burger + salad"
-    },
-    alcohol:"3–5 drinks (hydrate between)",
-    autoTasks: ["Smoothie","Hydration","Whole-food dinner"] // no alcohol control points
-  },
-  Fri: {
-    workout: { name:"Full-body Strength (Day 2)", pts:5 },
-    meals: {
-      breakfast:"Yogurt parfait",
-      lunch:"Upgraded Smoothie",
-      dinner:"Steak/chicken + potatoes + greens"
-    },
-    alcohol:"5–6 drinks (main social day)",
-    autoTasks: ["Smoothie","Hydration","Whole-food dinner"]
-  },
-  Sat: {
-    workout: { name:"Optional DEBS Walk (2.5 mi)", pts:4 },
-    meals: {
-      breakfast:"Chorizo + eggs + tortilla",
-      lunch:"Upgraded Smoothie",
-      dinner:"Burger/pizza + salad"
-    },
-    alcohol:"5–6 drinks (hydrate)",
-    autoTasks: ["Smoothie","Hydration","Whole-food dinner"]
-  },
-  Sun: {
-    workout: { name:"Yoga (Morning 30–45 min)", pts:4 },
-    meals: {
-      breakfast:"Oatmeal + PB + banana",
-      lunch:"Upgraded Smoothie",
-      dinner:"Lighter: fish/chicken + veggies"
-    },
-    alcohol:"3–4 drinks (taper down)",
-    autoTasks: ["Smoothie","Hydration","Whole-food dinner","Alcohol control"]
-  }
-};
+/* ===== Weekly Plan (anchors + workouts + alcohol) ===== */
 const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const WEEK_PLAN = {
+  Mon: { workout: { name:"DEBS Walk 2.5 mi (~50 min)", pts:4 }, alcoholCtrl:true },
+  Tue: { workout: { name:"Full‑body Strength (Day 1)", pts:5 }, alcoholCtrl:true },
+  Wed: { workout: { name:"Yoga (Evening 30–40 min slow flow)", pts:4 }, alcoholCtrl:true },
+  Thu: { workout: { name:"DEBS Walk 2.5 mi (~50 min)", pts:4 }, alcoholCtrl:false },
+  Fri: { workout: { name:"Full‑body Strength (Day 2)", pts:5 }, alcoholCtrl:false },
+  Sat: { workout: { name:"Optional DEBS Walk (2.5 mi)", pts:4 }, alcoholCtrl:false },
+  Sun: { workout: { name:"Yoga (Morning 30–45 min)", pts:4 }, alcoholCtrl:true }
+};
 
-/* ===== Habit points (from Daily Habits card) ===== */
+/* ===== Habit points (Daily Habits card) ===== */
 function habitPoints(entry, ds){
   if(!entry) return 0;
   const d = new Date(ds);
@@ -309,8 +252,8 @@ function habitPoints(entry, ds){
   const alcohol  = (entry.alcohol && alcEligible)?3:0;
   const hydration= entry.hydration?2:0;
   const food     = entry.wholefood?2:0;
-  const mind     = Number(entry.mindPts||0);
-  const taskB    = Number(entry.taskBucket||0);
+  const mind     = Number(entry.mindPts||0); // Meditation/Gratitude/Journaling/Prayer tier
+  const taskB    = Number(entry.taskBucket||0); // deep work bucket
   return smoothie+workout+alcohol+hydration+food+mind+taskB;
 }
 function rewardTier(total){
@@ -358,81 +301,15 @@ $('#saveBtn').addEventListener('click', ()=>{
     taskBucket: Number(taskBucketSel.value||0)
   };
   save(state); saveMsg.textContent="Saved ✅"; setTimeout(()=>saveMsg.textContent="",1200);
-  renderSummary();
+  renderToday(); renderWeek(); renderWeeklyTracker();
 });
 $('#clearDayBtn').addEventListener('click', ()=>{
-  const ds = dateInput.value; delete state.days[ds]; save(state); loadDayForm(ds); renderSummary();
+  const ds = dateInput.value; delete state.days[ds]; save(state); loadDayForm(ds);
+  renderToday(); renderWeek(); renderWeeklyTracker();
 });
 $('#todayBtn').addEventListener('click', ()=>{ setDateToToday(); loadDayForm(dateInput.value); });
 
-/* ===== Weekly Plan viewer ===== */
-const planDaySel = $('#planDay'), planView = $('#planView');
-(function initPlanDay(){
-  const order = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-  planDaySel.innerHTML = order.map(d=>`<option value="${d}">${d}</option>`).join("");
-  const today = new Date(); const dow = DOW[today.getDay()];
-  planDaySel.value = dow==="Sun"?"Sun":dow; // set default to today
-})();
-planDaySel.addEventListener('change', ()=> renderPlan(planDaySel.value));
-function renderPlan(dayKey){
-  const p = WEEK_PLAN[dayKey]; if(!p){ planView.innerHTML=""; return; }
-  planView.innerHTML = `
-    <div class="row">
-      <div>
-        <div class="pill">Workout</div>
-        <ul class="clean"><li>${p.workout.name}</li></ul>
-      </div>
-      <div>
-        <div class="pill">Alcohol</div>
-        <ul class="clean"><li>${p.alcohol}</li></ul>
-      </div>
-    </div>
-    <div class="row">
-      <div>
-        <div class="pill">Breakfast</div>
-        <ul class="clean"><li>${p.meals.breakfast}</li></ul>
-      </div>
-      <div>
-        <div class="pill">Lunch</div>
-        <ul class="clean"><li>${p.meals.lunch}</li></ul>
-      </div>
-    </div>
-    <div class="row">
-      <div>
-        <div class="pill">Dinner</div>
-        <ul class="clean"><li>${p.meals.dinner}</li></ul>
-      </div>
-      <div>
-        <div class="pill">Daily Anchors</div>
-        <ul class="clean"><li>Smoothie • Hydration • Whole‑food dinner</li></ul>
-      </div>
-    </div>
-  `;
-}
-renderPlan(planDaySel.value);
-
-/* ===== Auto-add TODAY's plan as tasks ===== */
-$('#addPlanToday').addEventListener('click', ()=>{
-  const today = new Date(); const dayKey = DOW[today.getDay()];
-  const p = WEEK_PLAN[dayKey==="Sun"?"Sun":dayKey]; if(!p) return;
-  const ds = todayStr();
-  // Base anchors
-  addSimpleTask("Smoothie", ds, "", 2);
-  addSimpleTask("Hydration 2–3 L", ds, "", 2);
-  addSimpleTask("Whole‑food dinner", ds, "", 2);
-  // Workout
-  addSimpleTask(p.workout.name, ds, "", p.workout.pts);
-  // Alcohol control if applicable (Mon/Tue/Wed/Sun)
-  if (["Mon","Tue","Wed","Sun"].includes(dayKey)) addSimpleTask("Alcohol control (≤2 drinks)", ds, "", 3);
-  save(state); renderToday(); renderWeek(); renderSummary();
-  alert("Added TODAY’s plan as tasks ✅");
-});
-function addSimpleTask(title, date, time, points){
-  state.tasks.push({ id: "t_"+Date.now()+Math.random().toString(36).slice(2),
-    title, date, time: time||"", category:"Plan", duration:"", points, done:false, doneAt:null });
-}
-
-/* ===== Custom Task points calc ===== */
+/* ===== Task points calc for custom tasks ===== */
 const taskTitle = $('#taskTitle'), taskDate = $('#taskDate'), taskTime = $('#taskTime'),
       taskCategory = $('#taskCategory'), taskDuration = $('#taskDuration'),
       taskPoints = $('#taskPoints');
@@ -441,7 +318,7 @@ function computeTaskPoints(){
   const cat = taskCategory.value;
   const bucket = taskDuration.value; // LT30, M30_59, GTE60
   const mindCats = ["Meditation","Gratitude","Journaling","Prayer"];
-  const medMap = { LT30:2, M30_59:3, GTE60:5 }; // we’ll map durations approximately
+  const medMap = { LT30:2, M30_59:3, GTE60:5 }; // <15, 15–29, ≥45 mapped to our buckets
   const genMap = { LT30:2, M30_59:4, GTE60:6 };
   const map = mindCats.includes(cat)? medMap : genMap;
   taskPoints.value = map[bucket];
@@ -467,22 +344,71 @@ $('#addTask').addEventListener('click', ()=>{
   };
   state.tasks.push(rec); save(state);
   taskTitle.value=""; taskTime.value="";
-  renderToday(); renderWeek(); renderSummary();
+  renderToday(); renderWeek(); renderWeeklyTracker();
 });
 
 $('#clearTasks').addEventListener('click', ()=>{
-  if(confirm("Delete ALL tasks?")){ state.tasks=[]; save(state); renderToday(); renderWeek(); }
+  if(confirm("Delete ALL tasks?")){ state.tasks=[]; save(state); renderToday(); renderWeek(); renderWeeklyTracker(); }
 });
 
-/* ===== Task list + Week render ===== */
+/* ===== Auto-add plan ===== */
+function addSimpleTask(title, date, time, points, category="Plan"){
+  state.tasks.push({
+    id: "t_"+Date.now()+Math.random().toString(36).slice(2),
+    title, date, time: time||"", category, duration:"", points, done:false, doneAt:null
+  });
+}
+function addPlanForDate(d){
+  const ds = fmtDate(d);
+  const dowName = DOW[d.getDay()];
+  const p = WEEK_PLAN[dowName];
+  // Anchors
+  addSimpleTask("Smoothie", ds, "", 2, "Nutrition");
+  addSimpleTask("Hydration 2–3 L", ds, "", 2, "Nutrition");
+  addSimpleTask("Whole‑food dinner", ds, "", 2, "Nutrition");
+  // Workout
+  if(p?.workout) addSimpleTask(p.workout.name, ds, "", p.workout.pts, "Workout");
+  // Alcohol control (Mon/Tue/Wed/Sun)
+  if(p?.alcoholCtrl) addSimpleTask("Alcohol control (≤2 drinks)", ds, "", 3, "Lifestyle");
+  // Daily Meditation minimum +2
+  addSimpleTask("Meditation (any, ≥5 min)", ds, "", 2, "Meditation");
+}
+$('#addPlanToday').addEventListener('click', ()=>{
+  addPlanForDate(new Date());
+  save(state); renderToday(); renderWeek(); renderWeeklyTracker();
+  alert("Added TODAY’s plan (incl. Meditation +2) ✅");
+});
+$('#addPlanWeek').addEventListener('click', ()=>{
+  const mon = mondayOf(new Date());
+  for(let i=0;i<7;i++) addPlanForDate(addDays(mon,i));
+  save(state); renderToday(); renderWeek(); renderWeeklyTracker();
+  alert("Added THIS WEEK (Mon–Sun) with daily Meditation +2 ✅");
+});
+
+/* ===== Task list / Today / Week ===== */
 function toggleTaskDone(id, checked){
   const t = state.tasks.find(x=>x.id===id); if(!t) return;
   t.done = checked; t.doneAt = checked ? new Date().toISOString() : null;
-  save(state); renderToday(); renderWeek(); renderSummary();
+  save(state); renderToday(); renderWeek(); renderWeeklyTracker();
 }
 function deleteTask(id){
   state.tasks = state.tasks.filter(x=>x.id!==id);
-  save(state); renderToday(); renderWeek(); renderSummary();
+  save(state); renderToday(); renderWeek(); renderWeeklyTracker();
+}
+function renderTaskRow(t){
+  const row = document.createElement('div'); row.className="task"+(t.done?" done":"");
+  row.innerHTML = `
+    <input type="checkbox" ${t.done?"checked":""} aria-label="complete">
+    <div class="title" style="flex:1">
+      <div><b>${t.title}</b> <span class="muted">• ${t.category||"Task"}</span></div>
+      <div class="small muted">${t.time?("⏰ "+t.time+" • "):""}${t.duration?labelForDuration(t.duration):""} ${t.points?("• +"+t.points+" pts"):""}</div>
+    </div>
+    <button class="btn ghost" aria-label="delete">🗑️</button>
+  `;
+  const [chk,,delBtn] = row.querySelectorAll('input,div,button');
+  chk.addEventListener('change', e=> toggleTaskDone(t.id, e.target.checked));
+  delBtn.addEventListener('click', ()=> deleteTask(t.id));
+  return row;
 }
 function renderToday(){
   const ds = todayStr();
@@ -491,21 +417,7 @@ function renderToday(){
     .sort((a,b)=> timeToNum(a.time)-timeToNum(b.time) || a.title.localeCompare(b.title));
   const box = $('#todayList'); box.innerHTML="";
   if(!list.length){ box.innerHTML = '<div class="small muted">No tasks due today.</div>'; return; }
-  list.forEach(t=>{
-    const row = document.createElement('div'); row.className = "task"+(t.done?" done":"");
-    row.innerHTML = `
-      <input type="checkbox" ${t.done?"checked":""} aria-label="complete">
-      <div class="title" style="flex:1">
-        <div><b>${t.title}</b> <span class="muted">• ${t.category}</span></div>
-        <div class="small muted">${t.time?("⏰ "+t.time+" • "):""}${t.duration?labelForDuration(t.duration):""} ${t.points?("• +"+t.points+" pts"):""}</div>
-      </div>
-      <button class="btn ghost" aria-label="delete">🗑️</button>
-    `;
-    const [chk,,delBtn] = row.querySelectorAll('input,div,button');
-    chk.addEventListener('change', e=> toggleTaskDone(t.id, e.target.checked));
-    delBtn.addEventListener('click', ()=> deleteTask(t.id));
-    box.appendChild(row);
-  });
+  list.forEach(t=> box.appendChild(renderTaskRow(t)));
 }
 function renderWeek(){
   const mon = mondayOf(new Date());
@@ -520,56 +432,55 @@ function renderWeek(){
     const sec = document.createElement('div'); sec.style.marginBottom="10px";
     sec.innerHTML = `<div class="pill">${pretty}</div>`;
     if(!arr.length){ sec.innerHTML += `<div class="small muted" style="margin-top:6px;">No tasks</div>`; }
-    arr.forEach(t=>{
-      const row = document.createElement('div'); row.className="task"+(t.done?" done":"");
-      row.innerHTML = `
-        <input type="checkbox" ${t.done?"checked":""} aria-label="complete">
-        <div class="title" style="flex:1">
-          <div><b>${t.title}</b> <span class="muted">• ${t.category}</span></div>
-          <div class="small muted">${t.time?("⏰ "+t.time+" • "):""}${t.duration?labelForDuration(t.duration):""} ${t.points?("• +"+t.points+" pts"):""}</div>
-        </div>
-        <button class="btn ghost" aria-label="delete">🗑️</button>
-      `;
-      const [chk,,delBtn] = row.querySelectorAll('input,div,button');
-      chk.addEventListener('change', e=> toggleTaskDone(t.id, e.target.checked));
-      delBtn.addEventListener('click', ()=> deleteTask(t.id));
-      sec.appendChild(row);
-    });
+    arr.forEach(t=> sec.appendChild(renderTaskRow(t)));
     wrap.appendChild(sec);
   });
 }
 
-/* ===== Weekly summary (habits + weights) ===== */
-function renderSummary(){
+/* ===== Weekly Points Tracker (habits + completed tasks) ===== */
+function sumCompletedTaskPtsInWeek(mon){
+  const sun = addDays(mon,6);
+  const start = fmtDate(mon), end = fmtDate(sun);
+  return state.tasks
+    .filter(t => t.done && t.date >= start && t.date <= end)
+    .reduce((s,t)=> s + Number(t.points||0), 0);
+}
+function renderWeeklyTracker(){
   const mon = mondayOf(new Date());
   const days = Array.from({length:7},(_,i)=> fmtDate(addDays(mon,i)));
-  let total = 0, weights = [];
-  days.forEach(ds=>{
-    const e = state.days[ds];
-    total += habitPoints(e, ds);
-    if(e?.weight!=null) weights.push(Number(e.weight));
-  });
-  const avgWt = weights.length? (weights.reduce((a,b)=>a+b,0)/weights.length) : null;
+  let habitTotal = 0;
+  days.forEach(ds=> habitTotal += habitPoints(state.days[ds], ds));
+  const taskTotal = sumCompletedTaskPtsInWeek(mon);
+  const total = habitTotal + taskTotal;
+
+  // tier + remaining
   const tier = rewardTier(total);
-  const toG1 = avgWt? Math.max(0,(avgWt-GOAL1)).toFixed(1): "—";
-  const toG2 = avgWt? Math.max(0,(avgWt-GOAL2)).toFixed(1): "—";
-  $('#weeklyStats').innerHTML = `
-    <span class="pill">Total: <b>${total}</b></span>
-    <span class="pill">Tier: <b>${tier}</b></span>
-    <span class="pill">Avg Wt: <b>${avgWt?avgWt.toFixed(1):"—"}</b></span>
-    <span class="pill">→199: <b>${toG1}</b> lb</span>
-    <span class="pill">→180: <b>${toG2}</b> lb</span>
-  `;
+  const daysLeft = 7 - (new Date().getDay()===0 ? 7 : new Date().getDay()); // Sun=0 => 7 left in new week; Mon=1 => 6, ...
+  function remTo(target){ return Math.max(0, target - total); }
+  const r60 = remTo(60), r80 = remTo(80), r90 = remTo(90);
+  function perDay(rem){ return daysLeft>0 ? (rem/daysLeft).toFixed(1) : (rem>0 ? "—" : "0"); }
+
+  // progress bar (cap at 100)
+  $('#barTotal').style.width = clamp((total/90)*100, 0, 100) + "%";
+
+  // KPIs
+  $('#kpiTotal').textContent = `This week: ${total} pts (Habits ${habitTotal} + Tasks ${taskTotal})`;
+  $('#kpiTier').textContent  = tier;
+  $('#kpiTo60').textContent  = r60===0 ? "Reached" : `${r60} pts to go`;
+  $('#kpiTo80').textContent  = r80===0 ? "Reached" : `${r80} pts to go`;
+  $('#kpiTo90').textContent  = r90===0 ? "Reached" : `${r90} pts to go`;
+  $('#kpiDaysLeft').textContent = `${daysLeft} day(s) left`;
+  $('#kpiPpd60').textContent = r60===0 ? "0" : `${perDay(r60)} / day`;
+  $('#kpiPpd80').textContent = r80===0 ? "0" : `${perDay(r80)} / day`;
+  $('#kpiPpd90').textContent = r90===0 ? "0" : `${perDay(r90)} / day`;
 }
 
 /* ===== Export / Import / Wipe ===== */
 $('#exportBtn').addEventListener('click', ()=>{
   const rows = [["type","title","date","time","category","duration","points","done","doneAt","weight","smoothie","workout","alcohol","hydration","wholefood","mindType","mindPts","taskBucket"]];
-  // tasks
   state.tasks.forEach(t=>{
     rows.push(["task", t.title, t.date, t.time, t.category, t.duration, t.points, t.done?1:0, t.doneAt||"", "", "", "", "", "", "", "", "", ""]);
   });
-  // days
   Object.keys(state.days).forEach(ds=>{
     const e = state.days[ds];
     rows.push(["day","", ds, "", "", "", "", "", "", e.weight??"", e.smoothie?1:0, e.workout??0, e.alcohol?1:0, e.hydration?1:0, e.wholefood?1:0, e.mindType||"", e.mindPts??0, e.taskBucket??0]);
@@ -615,18 +526,20 @@ $('#importFile').addEventListener('change', async e=>{
     }
   }
   state.tasks = allTasks; state.days = allDays; save(state);
-  renderToday(); renderWeek(); renderSummary();
+  renderToday(); renderWeek(); renderWeeklyTracker();
 });
 $('#wipeAll').addEventListener('click', ()=>{
-  if(confirm("Delete ALL tracker data?")){ state = {days:{},tasks:[]}; save(state); renderToday(); renderWeek(); renderSummary(); }
+  if(confirm("Delete ALL tracker data?")){ state = {days:{},tasks:[]}; save(state); renderToday(); renderWeek(); renderWeeklyTracker(); }
 });
 
-/* ===== Init ===== */
+/* ===== Init & PWA ===== */
 (function init(){
-  // set form to today
   dateInput.value = todayStr(); loadDayForm(dateInput.value);
-  renderToday(); renderWeek(); renderSummary();
+  renderToday(); renderWeek(); renderWeeklyTracker();
 })();
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", ()=> navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
 </script>
 </body>
 </html>
