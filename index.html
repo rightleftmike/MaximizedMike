@@ -1,28 +1,179 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Fitness + Tasks Tracker</title>
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<style>
-  :root { font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif; }
-  body { margin: 0; padding: 16px; background:#fff; }
-  h1 { font-size: 20px; margin: 0 0 12px; }
-  h2 { font-size: 16px; margin: 0 0 10px; }
-  .card { border: 1px solid #eee; border-radius: 12px; padding: 14px; margin: 12px 0; box-shadow: 0 1px 6px rgba(0,0,0,.05); background:#fff; }
-  .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-  label { display:block; font-weight:600; margin:8px 0 6px; }
-  input[type="number"], input[type="date"], input[type="time"], select, input[type="text"] { width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:16px; }
-  .toggle { display:flex; align-items:center; gap:10px; margin:6px 0; }
-  .btn { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fafafa; font-weight:600; cursor:pointer; }
-  .btn.primary { background:#0a84ff; color:#fff; border-color:#0a84ff; }
-  .btn.warn { background:#fff7e6; border-color:#ffc107; }
-  .btn.danger { background:#ffe8e8; border-color:#e74c3c; }
-  .btn.ghost { background:#fff; }
-  .pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid #ddd; }
-  .small { font-size:12px; opacity:.8; }
-  .flex { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .task { display:flex; align-items:center; gap:8px; padding:8px 0
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Daily Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h1 { text-align: center; }
+    .section { margin: 20px 0; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
+    label { display: block; margin: 8px 0 4px; font-weight: bold; }
+    select, input { width: 100%; padding: 8px; margin-bottom: 10px; }
+    button { padding: 10px 15px; margin: 5px 0; border: none; border-radius: 5px; cursor: pointer; }
+    .primary { background: #007bff; color: white; }
+    .danger { background: #dc3545; color: white; }
+    .secondary { background: #6c757d; color: white; }
+    .task-list { margin-top: 15px; }
+    .task { padding: 8px; border-bottom: 1px solid #ddd; }
+    .points { font-weight: bold; }
+    .schedule { background: #f8f9fa; padding: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>📅 Daily Tracker</h1>
+
+  <div class="section">
+    <h2>Add Task</h2>
+    <label for="taskName">Task</label>
+    <input type="text" id="taskName" placeholder="e.g. Study, Workout">
+
+    <label for="duration">Duration</label>
+    <select id="duration">
+      <option value="short">Less than 30 min (+2 pts)</option>
+      <option value="medium">Less than 60 min (+3 pts)</option>
+      <option value="long">More than 60 min (+5 pts)</option>
+    </select>
+
+    <label for="dueDate">Due Date</label>
+    <input type="date" id="dueDate">
+
+    <button class="primary" onclick="addTask()">Add Task</button>
+  </div>
+
+  <div class="section">
+    <h2>Meditation, Gratitude, Journaling, Prayer</h2>
+    <select id="wellnessType">
+      <option value="Meditation">Meditation</option>
+      <option value="Gratitude">Gratitude</option>
+      <option value="Journaling">Journaling</option>
+      <option value="Prayer">Prayer</option>
+    </select>
+
+    <label for="wellnessDuration">Duration</label>
+    <select id="wellnessDuration">
+      <option value="short">Less than 15 min (+2 pts)</option>
+      <option value="medium">15-29 min (+3 pts)</option>
+      <option value="long">45+ min (+5 pts)</option>
+    </select>
+
+    <button class="primary" onclick="addWellness()">Add</button>
+  </div>
+
+  <div class="section">
+    <h2>✅ Task List</h2>
+    <div id="taskList" class="task-list"></div>
+  </div>
+
+  <div class="section">
+    <h2>📆 Schedule (Today & Upcoming)</h2>
+    <div id="schedule" class="schedule"></div>
+  </div>
+
+  <div class="section">
+    <h2>Total Points: <span id="totalPoints">0</span></h2>
+    <button class="secondary" onclick="exportData()">Export Data</button>
+    <input type="file" id="importFile" onchange="importData(event)">
+    <button class="danger" onclick="resetData()">Reset All</button>
+  </div>
+
+<script>
+  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+  function calculatePoints(duration) {
+    if (duration === "short") return 2;
+    if (duration === "medium") return 3;
+    if (duration === "long") return 5;
+    return 0;
+  }
+
+  function addTask() {
+    const name = document.getElementById("taskName").value;
+    const duration = document.getElementById("duration").value;
+    const dueDate = document.getElementById("dueDate").value;
+    if (!name || !dueDate) return alert("Enter task and due date!");
+    const points = calculatePoints(duration);
+    tasks.push({ type: "Task", name, duration, points, dueDate });
+    saveTasks();
+  }
+
+  function addWellness() {
+    const name = document.getElementById("wellnessType").value;
+    const duration = document.getElementById("wellnessDuration").value;
+    const points = calculatePoints(duration);
+    const today = new Date().toISOString().split("T")[0];
+    tasks.push({ type: name, name, duration, points, dueDate: today });
+    saveTasks();
+  }
+
+  function renderTasks() {
+    const list = document.getElementById("taskList");
+    list.innerHTML = "";
+    tasks.forEach((t, i) => {
+      list.innerHTML += `<div class="task">
+        <b>${t.type}:</b> ${t.name} (${t.points} pts) - Due: ${t.dueDate}
+        <button onclick="deleteTask(${i})">❌</button>
+      </div>`;
+    });
+    document.getElementById("totalPoints").innerText =
+      tasks.reduce((sum, t) => sum + t.points, 0);
+    renderSchedule();
+  }
+
+  function renderSchedule() {
+    const today = new Date().toISOString().split("T")[0];
+    const scheduleDiv = document.getElementById("schedule");
+    const todayTasks = tasks.filter(t => t.dueDate === today);
+    const upcoming = tasks.filter(t => t.dueDate > today);
+
+    scheduleDiv.innerHTML = "<h3>Today</h3>";
+    todayTasks.forEach(t => {
+      scheduleDiv.innerHTML += `<div>✔️ ${t.type}: ${t.name} (${t.points} pts)</div>`;
+    });
+
+    scheduleDiv.innerHTML += "<h3>Upcoming</h3>";
+    upcoming.forEach(t => {
+      scheduleDiv.innerHTML += `<div>📌 ${t.dueDate}: ${t.type} - ${t.name} (${t.points} pts)</div>`;
+    });
+  }
+
+  function deleteTask(i) {
+    tasks.splice(i, 1);
+    saveTasks();
+  }
+
+  function saveTasks() {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+    renderTasks();
+  }
+
+  function exportData() {
+    const blob = new Blob([JSON.stringify(tasks)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tasks.json";
+    a.click();
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = e => {
+      tasks = JSON.parse(e.target.result);
+      saveTasks();
+    };
+    reader.readAsText(file);
+  }
+
+  function resetData() {
+    if (confirm("Are you sure?")) {
+      tasks = [];
+      saveTasks();
+    }
+  }
+
+  renderTasks();
+</script>
+</body>
+</html>
