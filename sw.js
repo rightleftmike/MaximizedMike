@@ -1,4 +1,4 @@
-const CACHE = "fitness-tracker-v1";
+const CACHE = "fitness-tracker-v2";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest"];
 
 self.addEventListener("install", (e) => {
@@ -16,10 +16,7 @@ self.addEventListener("activate", (e) => {
 self.addEventListener("fetch", (e) => {
   e.respondWith(
     caches.match(e.request).then((res) =>
-      res || fetch(e.request).then((resp) => {
-        // optionally cache new GETs
-        return resp;
-      }).catch(() => caches.match("./index.html"))
+      res || fetch(e.request).catch(() => caches.match("./index.html"))
     )
   );
 });
