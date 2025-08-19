@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Fitness Points + Weight Tracker</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root { font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif; }
+  body { margin: 0; padding: 16px; background:#fff; }
+  h1 { font-size: 20px; margin: 0 0 12px; }
+  h2 { font-size: 16px; margin: 0 0 10px; }
+  .card { border: 1px solid #eee; border-radius: 12px; padding: 14px; margin: 12px 0; box-shadow: 0 1px 6px rgba(0,0,0,.05); background:#fff; }
+  .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  label { display:block; font-weight:600; margin:8px 0 6px; }
+  input[type="number"], input[type="date"], select { width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:16px; }
+  .toggle { display:flex; align-items:center; gap:10px; margin:6px 0; }
+  .btn { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fafafa; font-weight:600; }
+  .btn.primary { background:#0a84ff; color:#fff; border-color:#0a84ff; }
+  .btn.warn { background:#fff7e6; border-color:#ffc107; }
+  .btn.ghost { background:#fff; }
+  .pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid #ddd; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { border-bottom:1px solid #eee; padding:8px; text-align:left; white-space:nowrap; }
+  .ok { color:#0a7a3e; font-weight:700; }
+  .small { font-size:12px; opacity:.8; }
+  .flex { display:flex; gap:8px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+  <h1>Fitness Points + Weight Tracker</h1>
+
+  <!-- Entry card -->
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="date">Date</label>
+        <input id="date" type="date">
+      </div>
+      <div>
+        <label for="weight">Weight (lb)</label>
+        <input id="weight" type="number" step="0.1" inputmode="decimal" placeholder="e.g., 234.6">
+      </div>
+    </div>
+
+    <label>Daily Habits</label>
+    <div class="toggle"><input id="smoothie" type="checkbox"> <span>Smoothie (+2)</span></div>
+
+    <label for="workout">Workout</label>
+    <select id="workout">
+      <option value="0">None (0)</option>
+      <option value="4">Walk / Yoga (+4)</option>
+      <option value="5">Lift (+5)</option>
+    </select>
+
+    <div class="toggle"><input id="alcohol" type="checkbox"> <span>Alcohol control (+3 on Mon–Wed & Sun if ≤2 drinks)</span></div>
+    <div class="toggle"><input id="hydration" type="checkbox"> <span>Hydration 2–3 L (+2)</span></div>
+    <div class="toggle"><input id="wholefood" type="checkbox"> <span>Whole‑food dinner (protein + veg) (+2)</span></div>
+
+    <!-- NEW: Meditation -->
+    <label for="meditation">Meditation (duration)</label>
+    <select id="meditation">
+      <option value="0">None (0)</option>
+      <option value="2">&lt; 30 min (+2)</option>
+      <option value="3">30–59 min (+3)</option>
+      <option value="5">≥ 60 min (+5)</option>
+    </select>
+
+    <!-- NEW: Task Completion bucket (Deep work / personal task) -->
+    <label for="task">Task Completion (focused session)</label>
+    <select id="task">
+      <option value="0">None (0)</option>
+      <option value="2">&lt; 30 min (+2)</option>
+      <option value="4">30–59 min (+4)</option>
+      <option value="6">≥ 60 min (+6)</option>
+    </select>
+
+    <div class="flex" style="margin-top:10px;">
+      <button class="btn primary" id="saveBtn">Save day</button>
+      <button class="btn" id="todayBtn">Today</button>
+      <button class="btn warn" id="clearDayBtn">Clear day</button>
+    </div>
+    <div id="saveMsg" class="small"></div>
+  </div>
+
+  <!-- Weekly summary -->
+  <div class="card">
+    <h2>This Week</h2>
+    <div class="small">Week starts Monday • Goal tiers: 199 lb, 180 lb</div>
+    <div id="weeklyStats" class="flex" style="margin-top:10px;"></div>
+    <div style="overflow:auto; margin-top:10px;">
+      <table id="weekTable">
+        <thead>
+          <tr>
+            <th>Day</th><th>Pts</th><th>Sm</th><th>Wo</th><th>Alc</th><th>Hyd</th><th>Food</th><th>Medit</th><th>Task</th><th>Wt</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div id="badge" style="margin-top:8px;"></div>
+    <div class="flex" style="margin-top:10px;">
+      <button class="btn" id="prevWeek">◀︎ Prev</button>
+      <button class="btn" id="thisWeek">This Week</button>
+      <button class="btn" id="nextWeek">Next ▶︎</button>
+    </div>
+  </div>
+
+  <!-- Data tools -->
+  <div class="card">
+    <h2>Data</h2>
+    <div class="flex">
+      <button class="btn" id="exportBtn">Export CSV</button>
+      <label class="btn ghost">
+        Import CSV
+        <input id="importFile" type="file" accept=".csv" style="display:none">
+      </label>
+      <button class="btn warn" id="wipeAll">Wipe All Data</button>
+    </div>
+    <div class="small" style="margin-top:6px;">On‑device only (localStorage). Export CSV to back up.</div>
+  </div>
+
+<script>
+/* ===== Core Settings ===== */
+const LS_KEY = "pw-tracker-v2";
+const GOAL1 = 199, GOAL2 = 180;
+
+/* ===== Helpers ===== */
+const $ = s => document.querySelector(s);
+function loadAll(){ try{return JSON.parse(localStorage.getItem(LS_KEY)||"{}")}catch{return{}} }
+function saveAll(o){ localStorage.setItem(LS_KEY, JSON.stringify(o)); }
+function fmtDate(d){ return d.toISOString().slice(0,10); }
+function mondayOf(date){ const d=new Date(date); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(0,0,0,0); return d; }
+function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+function dayName(date){ return new Intl.DateTimeFormat(undefined,{weekday:'short'}).format(date); }
+
+/* ===== Points Logic ===== */
+function dailyPoints(entry, date){
+  if(!entry) return 0;
+  const sm = entry.smoothie? 2:0;
+  const wo = Number(entry.workout||0);
+  // Alcohol control: +3 only on Mon/Tue/Wed/Sun
+  const dow = (date.getDay()+6)%7; // Mon=0..Sun=6
+  const alcEligible = (dow<=2)||(dow===6);
+  const alc = (entry.alcohol && alcEligible)? 3:0;
+  const hyd = entry.hydration? 2:0;
+  const food = entry.wholefood? 2:0;
+
+  // NEW: Meditation & Task points are direct values from selects
+  const med = Number(entry.meditation||0);
+  const task = Number(entry.task||0);
+
+  return sm + wo + alc + hyd + food + med + task;
+}
+function rewardTier(total){
+  if(total<60) return "❌ Below Baseline";
+  if(total<80) return "🎯 Baseline Success";
+  if(total<90) return "⭐ High Score";
+  return "🏆 Elite Execution";
+}
+
+/* ===== UI Elements ===== */
+const dateInput = $('#date'), weightInput = $('#weight'),
+      smoothieInput = $('#smoothie'), workoutSel = $('#workout'),
+      alcoholInput = $('#alcohol'), hydrationInput = $('#hydration'),
+      wholefoodInput = $('#wholefood'), meditationSel = $('#meditation'),
+      taskSel = $('#task'), saveMsg = $('#saveMsg');
+
+function setDateToToday(){ dateInput.value = fmtDate(new Date()); }
+setDateToToday();
+
+function readForm(){
+  return {
+    weight: weightInput.value ? Number(weightInput.value) : null,
+    smoothie: smoothieInput.checked,
+    workout: Number(workoutSel.value||0),
+    alcohol: alcoholInput.checked,
+    hydration: hydrationInput.checked,
+    wholefood: wholefoodInput.checked,
+    meditation: Number(meditationSel.value||0),
+    task: Number(taskSel.value||0)
+  };
+}
+function fillForm(e){
+  weightInput.value = e?.weight ?? "";
+  smoothieInput.checked = !!e?.smoothie;
+  workoutSel.value = e?.workout ?? 0;
+  alcoholInput.checked = !!e?.alcohol;
+  hydrationInput.checked = !!e?.hydration;
+  wholefoodInput.checked = !!e?.wholefood;
+  meditationSel.value = e?.meditation ?? 0;
+  taskSel.value = e?.task ?? 0;
+}
+function saveDay(){
+  const d = dateInput.value; if(!d){ saveMsg.textContent="Pick a date."; return; }
+  const all = loadAll(); all[d] = readForm(); saveAll(all);
+  saveMsg.textContent = "Saved ✅"; setTimeout(()=>saveMsg.textContent="",1300);
+  refreshWeek();
+}
+function clearDay(){
+  const d = dateInput.value; if(!d) return;
+  const all = loadAll(); delete all[d]; saveAll(all);
+  fillForm({}); refreshWeek();
+}
+function loadDayToForm(){
+  const d = dateInput.value; const all = loadAll(); fillForm(all[d]);
+}
+dateInput.addEventListener('change', loadDayToForm);
+$('#saveBtn').addEventListener('click', saveDay);
+$('#clearDayBtn').addEventListener('click', clearDay);
+$('#todayBtn').addEventListener('click', ()=>{ setDateToToday(); loadDayToForm(); });
+
+/* ===== Weekly View ===== */
+let state = { cursorMonday: mondayOf(new Date()) };
+
+function getWeekDates(mon){ return Array.from({length:7},(_,i)=>addDays(mon,i)); }
+
+function refreshWeek(){
+  const mon = state.cursorMonday; const dates = getWeekDates(mon);
+  const all = loadAll(); const tbody = $('#weekTable tbody'); tbody.innerHTML = "";
+  let total = 0, weights = [];
+
+  dates.forEach(d=>{
+    const key = fmtDate(d); const e = all[key]; const pts = dailyPoints(e,d);
+    total += pts; if(e?.weight!=null) weights.push(Number(e.weight));
+    const tr = document.createElement('tr');
+    function c(v){ const td=document.createElement('td'); td.textContent=(v===0?0:(v||"")); return
