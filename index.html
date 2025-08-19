@@ -1,179 +1,632 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Tracker</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    h1 { text-align: center; }
-    .section { margin: 20px 0; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
-    label { display: block; margin: 8px 0 4px; font-weight: bold; }
-    select, input { width: 100%; padding: 8px; margin-bottom: 10px; }
-    button { padding: 10px 15px; margin: 5px 0; border: none; border-radius: 5px; cursor: pointer; }
-    .primary { background: #007bff; color: white; }
-    .danger { background: #dc3545; color: white; }
-    .secondary { background: #6c757d; color: white; }
-    .task-list { margin-top: 15px; }
-    .task { padding: 8px; border-bottom: 1px solid #ddd; }
-    .points { font-weight: bold; }
-    .schedule { background: #f8f9fa; padding: 10px; border-radius: 6px; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Fitness • Meals • Tasks Tracker</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root { font-family: -apple-system, system-ui, Segoe UI, Roboto, sans-serif; }
+  body { margin: 0; padding: 16px; background:#fff; }
+  h1 { font-size: 20px; margin: 0 0 12px; }
+  h2 { font-size: 16px; margin: 0 0 10px; }
+  .card { border: 1px solid #eee; border-radius: 12px; padding: 14px; margin: 12px 0; box-shadow: 0 1px 6px rgba(0,0,0,.05); background:#fff; }
+  .row { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+  label { display:block; font-weight:600; margin:8px 0 6px; }
+  input[type="number"], input[type="date"], input[type="time"], select, input[type="text"] { width:100%; padding:10px; border:1px solid #ddd; border-radius:10px; font-size:16px; }
+  .toggle { display:flex; align-items:center; gap:10px; margin:6px 0; }
+  .btn { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid #ddd; background:#fafafa; font-weight:600; cursor:pointer; }
+  .btn.primary { background:#0a84ff; color:#fff; border-color:#0a84ff; }
+  .btn.warn { background:#fff7e6; border-color:#ffc107; }
+  .btn.danger { background:#ffe8e8; border-color:#e74c3c; }
+  .btn.ghost { background:#fff; }
+  .pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid #ddd; }
+  .small { font-size:12px; opacity:.8; }
+  .flex { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .task { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid #f1f1f1; }
+  .task.done .title { text-decoration: line-through; opacity:.6; }
+  .muted { opacity:.65; }
+  ul.clean { margin:6px 0 0 18px; }
+  ul.clean li { margin:2px 0; }
+</style>
 </head>
 <body>
-  <h1>📅 Daily Tracker</h1>
+  <h1>Fitness • Meals • Tasks Tracker</h1>
 
-  <div class="section">
-    <h2>Add Task</h2>
-    <label for="taskName">Task</label>
-    <input type="text" id="taskName" placeholder="e.g. Study, Workout">
+  <!-- ===== Daily Habit Quick Log ===== -->
+  <div class="card">
+    <h2>Daily Habits</h2>
+    <div class="row">
+      <div>
+        <label for="date">Date</label>
+        <input id="date" type="date">
+      </div>
+      <div>
+        <label for="weight">Weight (lb)</label>
+        <input id="weight" type="number" step="0.1" inputmode="decimal" placeholder="e.g., 234.6">
+      </div>
+    </div>
 
-    <label for="duration">Duration</label>
-    <select id="duration">
-      <option value="short">Less than 30 min (+2 pts)</option>
-      <option value="medium">Less than 60 min (+3 pts)</option>
-      <option value="long">More than 60 min (+5 pts)</option>
+    <div class="toggle"><input id="smoothie" type="checkbox"> <span>Smoothie (+2)</span></div>
+
+    <label for="workout">Workout</label>
+    <select id="workout">
+      <option value="0">None (0)</option>
+      <option value="4">Walk / Yoga (+4)</option>
+      <option value="5">Lift (+5)</option>
     </select>
 
-    <label for="dueDate">Due Date</label>
-    <input type="date" id="dueDate">
+    <div class="toggle"><input id="alcohol" type="checkbox"> <span>Alcohol control (+3 on Mon–Wed & Sun if ≤2 drinks)</span></div>
+    <div class="toggle"><input id="hydration" type="checkbox"> <span>Hydration 2–3 L (+2)</span></div>
+    <div class="toggle"><input id="wholefood" type="checkbox"> <span>Whole‑food dinner (protein + veg) (+2)</span></div>
 
-    <button class="primary" onclick="addTask()">Add Task</button>
-  </div>
+    <!-- Mindfulness / Spiritual habits (new tiers) -->
+    <div class="row">
+      <div>
+        <label for="mindType">Mind/Spirit Practice</label>
+        <select id="mindType">
+          <option value="None">None</option>
+          <option value="Meditation">Meditation</option>
+          <option value="Gratitude">Gratitude</option>
+          <option value="Journaling">Journaling</option>
+          <option value="Prayer">Prayer</option>
+        </select>
+      </div>
+      <div>
+        <label for="mindDuration">Duration</label>
+        <select id="mindDuration">
+          <option value="0">None (0)</option>
+          <option value="2">&lt; 15 min (+2)</option>
+          <option value="3">15–29 min (+3)</option>
+          <option value="5">≥ 45 min (+5)</option>
+        </select>
+      </div>
+    </div>
 
-  <div class="section">
-    <h2>Meditation, Gratitude, Journaling, Prayer</h2>
-    <select id="wellnessType">
-      <option value="Meditation">Meditation</option>
-      <option value="Gratitude">Gratitude</option>
-      <option value="Journaling">Journaling</option>
-      <option value="Prayer">Prayer</option>
+    <!-- Focused task session buckets -->
+    <label for="taskBucket">Focused Task Session</label>
+    <select id="taskBucket">
+      <option value="0">None (0)</option>
+      <option value="2">&lt; 30 min (+2)</option>
+      <option value="4">30–59 min (+4)</option>
+      <option value="6">≥ 60 min (+6)</option>
     </select>
 
-    <label for="wellnessDuration">Duration</label>
-    <select id="wellnessDuration">
-      <option value="short">Less than 15 min (+2 pts)</option>
-      <option value="medium">15-29 min (+3 pts)</option>
-      <option value="long">45+ min (+5 pts)</option>
-    </select>
-
-    <button class="primary" onclick="addWellness()">Add</button>
+    <div class="flex" style="margin-top:10px;">
+      <button class="btn primary" id="saveBtn">Save day</button>
+      <button class="btn" id="todayBtn">Today</button>
+      <button class="btn warn" id="clearDayBtn">Clear day</button>
+    </div>
+    <div id="saveMsg" class="small"></div>
   </div>
 
-  <div class="section">
-    <h2>✅ Task List</h2>
-    <div id="taskList" class="task-list"></div>
+  <!-- ===== Weekly Plan (Meals + Workouts + Alcohol rules) ===== -->
+  <div class="card">
+    <h2>Weekly Plan</h2>
+    <div class="row">
+      <div>
+        <label for="planDay">View plan for</label>
+        <select id="planDay"></select>
+      </div>
+      <div style="display:flex; align-items:flex-end;">
+        <button class="btn primary" id="addPlanToday">Add TODAY’s plan as tasks</button>
+      </div>
+    </div>
+    <div id="planView"></div>
   </div>
 
-  <div class="section">
-    <h2>📆 Schedule (Today & Upcoming)</h2>
-    <div id="schedule" class="schedule"></div>
+  <!-- ===== Task Scheduler (custom tasks) ===== -->
+  <div class="card">
+    <h2>Add Custom Task</h2>
+    <div class="row">
+      <div>
+        <label for="taskTitle">Title</label>
+        <input id="taskTitle" type="text" placeholder="e.g., Meal Prep, Email, DEBS Walk">
+      </div>
+      <div>
+        <label for="taskDate">Due Date</label>
+        <input id="taskDate" type="date">
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label for="taskTime">Time (optional)</label>
+        <input id="taskTime" type="time">
+      </div>
+      <div>
+        <label for="taskDuration">Duration</label>
+        <select id="taskDuration">
+          <option value="LT30">&lt; 30 min</option>
+          <option value="M30_59">30–59 min</option>
+          <option value="GTE60">≥ 60 min</option>
+        </select>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <label for="taskCategory">Category</label>
+        <select id="taskCategory">
+          <option>General</option>
+          <option>Workout</option>
+          <option>Nutrition</option>
+          <option>Meditation</option>
+          <option>Gratitude</option>
+          <option>Journaling</option>
+          <option>Prayer</option>
+        </select>
+      </div>
+      <div>
+        <label for="taskPoints">Points (auto)</label>
+        <input id="taskPoints" type="number" readonly>
+      </div>
+    </div>
+    <div class="flex" style="margin-top:10px;">
+      <button class="btn primary" id="addTask">Add Task</button>
+      <button class="btn danger" id="clearTasks">Delete ALL Tasks</button>
+    </div>
+    <div class="small muted">Meditation/Gratitude/Journaling/Prayer points: 2/3/5 (for &lt;15 / 15–29 / ≥45). Other tasks: 2/4/6 (for &lt;30 / 30–59 / ≥60).</div>
   </div>
 
-  <div class="section">
-    <h2>Total Points: <span id="totalPoints">0</span></h2>
-    <button class="secondary" onclick="exportData()">Export Data</button>
-    <input type="file" id="importFile" onchange="importData(event)">
-    <button class="danger" onclick="resetData()">Reset All</button>
+  <!-- ===== Today + Week Schedule ===== -->
+  <div class="card">
+    <h2>Today’s Schedule</h2>
+    <div id="todayList"></div>
+  </div>
+  <div class="card">
+    <h2>Next 7 Days</h2>
+    <div id="weekList"></div>
+  </div>
+
+  <!-- ===== Weekly Summary ===== -->
+  <div class="card">
+    <h2>This Week Summary</h2>
+    <div class="small">Week starts Monday • Weight goals: 199 lb (Tier 1), 180 lb (Tier 2)</div>
+    <div id="weeklyStats" class="flex" style="margin-top:10px;"></div>
+  </div>
+
+  <!-- ===== Data tools ===== -->
+  <div class="card">
+    <h2>Data</h2>
+    <div class="flex">
+      <button class="btn" id="exportBtn">Export CSV</button>
+      <label class="btn ghost">
+        Import CSV
+        <input id="importFile" type="file" accept=".csv" style="display:none">
+      </label>
+      <button class="btn warn" id="wipeAll">Wipe All Data</button>
+    </div>
+    <div class="small" style="margin-top:6px;">On‑device only (localStorage). Export CSV to back up.</div>
   </div>
 
 <script>
-  let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+/* ===== Settings & Helpers ===== */
+const APP_KEY = "fit-meal-workout-v1";
+const GOAL1 = 199, GOAL2 = 180;
+const $ = s => document.querySelector(s);
+function load(){ try{return JSON.parse(localStorage.getItem(APP_KEY)||"{}")}catch{return{}} }
+function save(o){ localStorage.setItem(APP_KEY, JSON.stringify(o)); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function fmtDate(d){ return d.toISOString().slice(0,10); }
+function mondayOf(date){ const d=new Date(date); const day=(d.getDay()+6)%7; d.setDate(d.getDate()-day); d.setHours(0,0,0,0); return d; }
+function addDays(date,n){ const d=new Date(date); d.setDate(d.getDate()+n); return d; }
+function timeToNum(t){ if(!t) return 24*60+1; const [h,m]=t.split(":").map(Number); return h*60+m; }
+function labelForDuration(code){ return code==="LT30"?"<30 min":code==="M30_59"?"30–59 min":"≥60 min"; }
 
-  function calculatePoints(duration) {
-    if (duration === "short") return 2;
-    if (duration === "medium") return 3;
-    if (duration === "long") return 5;
-    return 0;
+/* ===== Base state ===== */
+let state = load();
+if(!state.days) state.days = {};
+if(!state.tasks) state.tasks = [];
+
+/* ===== Weekly Plan (Meals + Workouts + Alcohol) =====
+  Points logic for auto-add:
+  - Smoothie +2, Hydration +2, Whole-food +2
+  - Workout: Walk/Yoga +4, Lift +5
+  - Alcohol control +3 only Mon/Tue/Wed/Sun (≤2 drinks)
+*/
+const WEEK_PLAN = {
+  Mon: {
+    workout: { name:"DEBS Walk 2.5 mi (~50 min)", pts:4 },
+    meals: {
+      breakfast:"High-protein (eggs/yogurt/oats)",
+      lunch:"Upgraded Smoothie",
+      dinner:"Lean protein + veggies + carbs"
+    },
+    alcohol:"0–2 drinks max",
+    autoTasks: ["Smoothie","Hydration","Whole-food dinner","Alcohol control"]
+  },
+  Tue: {
+    workout: { name:"Full-body Strength (Day 1)", pts:5 },
+    meals: {
+      breakfast:"Protein + carbs (pre-lift)",
+      lunch:"Upgraded Smoothie",
+      dinner:"High-protein dinner"
+    },
+    alcohol:"0–2 drinks max",
+    autoTasks: ["Smoothie","Hydration","Whole-food dinner","Alcohol control"]
+  },
+  Wed: {
+    workout: { name:"Yoga (Evening 30–40 min slow flow)", pts:4 },
+    meals: {
+      breakfast:"Balanced breakfast",
+      lunch:"Upgraded Smoothie",
+      dinner:"Whole-food dinner"
+    },
+    alcohol:"0–2 drinks max",
+    autoTasks: ["Smoothie","Hydration","Whole-food dinner","Alcohol control"]
+  },
+  Thu: {
+    workout: { name:"DEBS Walk 2.5 mi (~50 min)", pts:4 },
+    meals: {
+      breakfast:"Eggs + spinach + avocado",
+      lunch:"Upgraded Smoothie",
+      dinner:"Tacos or lean burger + salad"
+    },
+    alcohol:"3–5 drinks (hydrate between)",
+    autoTasks: ["Smoothie","Hydration","Whole-food dinner"] // no alcohol control points
+  },
+  Fri: {
+    workout: { name:"Full-body Strength (Day 2)", pts:5 },
+    meals: {
+      breakfast:"Yogurt parfait",
+      lunch:"Upgraded Smoothie",
+      dinner:"Steak/chicken + potatoes + greens"
+    },
+    alcohol:"5–6 drinks (main social day)",
+    autoTasks: ["Smoothie","Hydration","Whole-food dinner"]
+  },
+  Sat: {
+    workout: { name:"Optional DEBS Walk (2.5 mi)", pts:4 },
+    meals: {
+      breakfast:"Chorizo + eggs + tortilla",
+      lunch:"Upgraded Smoothie",
+      dinner:"Burger/pizza + salad"
+    },
+    alcohol:"5–6 drinks (hydrate)",
+    autoTasks: ["Smoothie","Hydration","Whole-food dinner"]
+  },
+  Sun: {
+    workout: { name:"Yoga (Morning 30–45 min)", pts:4 },
+    meals: {
+      breakfast:"Oatmeal + PB + banana",
+      lunch:"Upgraded Smoothie",
+      dinner:"Lighter: fish/chicken + veggies"
+    },
+    alcohol:"3–4 drinks (taper down)",
+    autoTasks: ["Smoothie","Hydration","Whole-food dinner","Alcohol control"]
   }
+};
+const DOW = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-  function addTask() {
-    const name = document.getElementById("taskName").value;
-    const duration = document.getElementById("duration").value;
-    const dueDate = document.getElementById("dueDate").value;
-    if (!name || !dueDate) return alert("Enter task and due date!");
-    const points = calculatePoints(duration);
-    tasks.push({ type: "Task", name, duration, points, dueDate });
-    saveTasks();
-  }
+/* ===== Habit points (from Daily Habits card) ===== */
+function habitPoints(entry, ds){
+  if(!entry) return 0;
+  const d = new Date(ds);
+  const dow = (d.getDay()+6)%7; // Mon=0..Sun=6
+  const alcEligible = (dow<=2)||(dow===6); // Mon/Tue/Wed/Sun
+  const smoothie = entry.smoothie?2:0;
+  const workout  = Number(entry.workout||0);
+  const alcohol  = (entry.alcohol && alcEligible)?3:0;
+  const hydration= entry.hydration?2:0;
+  const food     = entry.wholefood?2:0;
+  const mind     = Number(entry.mindPts||0);
+  const taskB    = Number(entry.taskBucket||0);
+  return smoothie+workout+alcohol+hydration+food+mind+taskB;
+}
+function rewardTier(total){
+  if(total<60) return "❌ Below Baseline";
+  if(total<80) return "🎯 Baseline Success";
+  if(total<90) return "⭐ High Score";
+  return "🏆 Elite Execution";
+}
 
-  function addWellness() {
-    const name = document.getElementById("wellnessType").value;
-    const duration = document.getElementById("wellnessDuration").value;
-    const points = calculatePoints(duration);
-    const today = new Date().toISOString().split("T")[0];
-    tasks.push({ type: name, name, duration, points, dueDate: today });
-    saveTasks();
-  }
+/* ===== Daily Habits form bindings ===== */
+const dateInput = $('#date'), weightInput = $('#weight'),
+      smoothieInput = $('#smoothie'), workoutSel = $('#workout'),
+      alcoholInput = $('#alcohol'), hydrationInput = $('#hydration'),
+      wholefoodInput = $('#wholefood'),
+      mindTypeSel = $('#mindType'), mindDurationSel = $('#mindDuration'),
+      taskBucketSel = $('#taskBucket'), saveMsg = $('#saveMsg');
 
-  function renderTasks() {
-    const list = document.getElementById("taskList");
-    list.innerHTML = "";
-    tasks.forEach((t, i) => {
-      list.innerHTML += `<div class="task">
-        <b>${t.type}:</b> ${t.name} (${t.points} pts) - Due: ${t.dueDate}
-        <button onclick="deleteTask(${i})">❌</button>
-      </div>`;
+function setDateToToday(){ dateInput.value = todayStr(); }
+function loadDayForm(ds){
+  const e = state.days[ds]||{};
+  weightInput.value = e.weight ?? "";
+  smoothieInput.checked = !!e.smoothie;
+  workoutSel.value = e.workout ?? 0;
+  alcoholInput.checked = !!e.alcohol;
+  hydrationInput.checked = !!e.hydration;
+  wholefoodInput.checked = !!e.wholefood;
+  mindTypeSel.value = e.mindType || "None";
+  mindDurationSel.value = e.mindPts || 0;
+  taskBucketSel.value = e.taskBucket || 0;
+}
+dateInput.addEventListener('change', ()=> loadDayForm(dateInput.value));
+setDateToToday(); loadDayForm(dateInput.value);
+
+$('#saveBtn').addEventListener('click', ()=>{
+  const ds = dateInput.value;
+  state.days[ds] = {
+    weight: weightInput.value? Number(weightInput.value): null,
+    smoothie: smoothieInput.checked,
+    workout: Number(workoutSel.value||0),
+    alcohol: alcoholInput.checked,
+    hydration: hydrationInput.checked,
+    wholefood: wholefoodInput.checked,
+    mindType: mindTypeSel.value,
+    mindPts: Number(mindDurationSel.value||0),
+    taskBucket: Number(taskBucketSel.value||0)
+  };
+  save(state); saveMsg.textContent="Saved ✅"; setTimeout(()=>saveMsg.textContent="",1200);
+  renderSummary();
+});
+$('#clearDayBtn').addEventListener('click', ()=>{
+  const ds = dateInput.value; delete state.days[ds]; save(state); loadDayForm(ds); renderSummary();
+});
+$('#todayBtn').addEventListener('click', ()=>{ setDateToToday(); loadDayForm(dateInput.value); });
+
+/* ===== Weekly Plan viewer ===== */
+const planDaySel = $('#planDay'), planView = $('#planView');
+(function initPlanDay(){
+  const order = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  planDaySel.innerHTML = order.map(d=>`<option value="${d}">${d}</option>`).join("");
+  const today = new Date(); const dow = DOW[today.getDay()];
+  planDaySel.value = dow==="Sun"?"Sun":dow; // set default to today
+})();
+planDaySel.addEventListener('change', ()=> renderPlan(planDaySel.value));
+function renderPlan(dayKey){
+  const p = WEEK_PLAN[dayKey]; if(!p){ planView.innerHTML=""; return; }
+  planView.innerHTML = `
+    <div class="row">
+      <div>
+        <div class="pill">Workout</div>
+        <ul class="clean"><li>${p.workout.name}</li></ul>
+      </div>
+      <div>
+        <div class="pill">Alcohol</div>
+        <ul class="clean"><li>${p.alcohol}</li></ul>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <div class="pill">Breakfast</div>
+        <ul class="clean"><li>${p.meals.breakfast}</li></ul>
+      </div>
+      <div>
+        <div class="pill">Lunch</div>
+        <ul class="clean"><li>${p.meals.lunch}</li></ul>
+      </div>
+    </div>
+    <div class="row">
+      <div>
+        <div class="pill">Dinner</div>
+        <ul class="clean"><li>${p.meals.dinner}</li></ul>
+      </div>
+      <div>
+        <div class="pill">Daily Anchors</div>
+        <ul class="clean"><li>Smoothie • Hydration • Whole‑food dinner</li></ul>
+      </div>
+    </div>
+  `;
+}
+renderPlan(planDaySel.value);
+
+/* ===== Auto-add TODAY's plan as tasks ===== */
+$('#addPlanToday').addEventListener('click', ()=>{
+  const today = new Date(); const dayKey = DOW[today.getDay()];
+  const p = WEEK_PLAN[dayKey==="Sun"?"Sun":dayKey]; if(!p) return;
+  const ds = todayStr();
+  // Base anchors
+  addSimpleTask("Smoothie", ds, "", 2);
+  addSimpleTask("Hydration 2–3 L", ds, "", 2);
+  addSimpleTask("Whole‑food dinner", ds, "", 2);
+  // Workout
+  addSimpleTask(p.workout.name, ds, "", p.workout.pts);
+  // Alcohol control if applicable (Mon/Tue/Wed/Sun)
+  if (["Mon","Tue","Wed","Sun"].includes(dayKey)) addSimpleTask("Alcohol control (≤2 drinks)", ds, "", 3);
+  save(state); renderToday(); renderWeek(); renderSummary();
+  alert("Added TODAY’s plan as tasks ✅");
+});
+function addSimpleTask(title, date, time, points){
+  state.tasks.push({ id: "t_"+Date.now()+Math.random().toString(36).slice(2),
+    title, date, time: time||"", category:"Plan", duration:"", points, done:false, doneAt:null });
+}
+
+/* ===== Custom Task points calc ===== */
+const taskTitle = $('#taskTitle'), taskDate = $('#taskDate'), taskTime = $('#taskTime'),
+      taskCategory = $('#taskCategory'), taskDuration = $('#taskDuration'),
+      taskPoints = $('#taskPoints');
+
+function computeTaskPoints(){
+  const cat = taskCategory.value;
+  const bucket = taskDuration.value; // LT30, M30_59, GTE60
+  const mindCats = ["Meditation","Gratitude","Journaling","Prayer"];
+  const medMap = { LT30:2, M30_59:3, GTE60:5 }; // we’ll map durations approximately
+  const genMap = { LT30:2, M30_59:4, GTE60:6 };
+  const map = mindCats.includes(cat)? medMap : genMap;
+  taskPoints.value = map[bucket];
+}
+taskCategory.addEventListener('change', computeTaskPoints);
+taskDuration.addEventListener('change', computeTaskPoints);
+computeTaskPoints();
+
+$('#addTask').addEventListener('click', ()=>{
+  const t = (taskTitle.value||"").trim();
+  const d = taskDate.value;
+  if(!t || !d){ alert("Please enter a title and due date."); return; }
+  const rec = {
+    id: "t_"+Date.now()+Math.random().toString(36).slice(2),
+    title: t,
+    date: d,
+    time: taskTime.value || "",
+    category: taskCategory.value,
+    duration: taskDuration.value,
+    points: Number(taskPoints.value||0),
+    done: false,
+    doneAt: null
+  };
+  state.tasks.push(rec); save(state);
+  taskTitle.value=""; taskTime.value="";
+  renderToday(); renderWeek(); renderSummary();
+});
+
+$('#clearTasks').addEventListener('click', ()=>{
+  if(confirm("Delete ALL tasks?")){ state.tasks=[]; save(state); renderToday(); renderWeek(); }
+});
+
+/* ===== Task list + Week render ===== */
+function toggleTaskDone(id, checked){
+  const t = state.tasks.find(x=>x.id===id); if(!t) return;
+  t.done = checked; t.doneAt = checked ? new Date().toISOString() : null;
+  save(state); renderToday(); renderWeek(); renderSummary();
+}
+function deleteTask(id){
+  state.tasks = state.tasks.filter(x=>x.id!==id);
+  save(state); renderToday(); renderWeek(); renderSummary();
+}
+function renderToday(){
+  const ds = todayStr();
+  const list = state.tasks
+    .filter(t=>t.date===ds)
+    .sort((a,b)=> timeToNum(a.time)-timeToNum(b.time) || a.title.localeCompare(b.title));
+  const box = $('#todayList'); box.innerHTML="";
+  if(!list.length){ box.innerHTML = '<div class="small muted">No tasks due today.</div>'; return; }
+  list.forEach(t=>{
+    const row = document.createElement('div'); row.className = "task"+(t.done?" done":"");
+    row.innerHTML = `
+      <input type="checkbox" ${t.done?"checked":""} aria-label="complete">
+      <div class="title" style="flex:1">
+        <div><b>${t.title}</b> <span class="muted">• ${t.category}</span></div>
+        <div class="small muted">${t.time?("⏰ "+t.time+" • "):""}${t.duration?labelForDuration(t.duration):""} ${t.points?("• +"+t.points+" pts"):""}</div>
+      </div>
+      <button class="btn ghost" aria-label="delete">🗑️</button>
+    `;
+    const [chk,,delBtn] = row.querySelectorAll('input,div,button');
+    chk.addEventListener('change', e=> toggleTaskDone(t.id, e.target.checked));
+    delBtn.addEventListener('click', ()=> deleteTask(t.id));
+    box.appendChild(row);
+  });
+}
+function renderWeek(){
+  const mon = mondayOf(new Date());
+  const days = Array.from({length:7},(_,i)=> fmtDate(addDays(mon,i)));
+  const byDate = {}; days.forEach(ds=> byDate[ds]=[]);
+  state.tasks.forEach(t=> { if(byDate[t.date]) byDate[t.date].push(t); });
+  const wrap = $('#weekList'); wrap.innerHTML="";
+  days.forEach(ds=>{
+    const d = new Date(ds);
+    const pretty = d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
+    const arr = byDate[ds].sort((a,b)=> timeToNum(a.time)-timeToNum(b.time) || a.title.localeCompare(b.title));
+    const sec = document.createElement('div'); sec.style.marginBottom="10px";
+    sec.innerHTML = `<div class="pill">${pretty}</div>`;
+    if(!arr.length){ sec.innerHTML += `<div class="small muted" style="margin-top:6px;">No tasks</div>`; }
+    arr.forEach(t=>{
+      const row = document.createElement('div'); row.className="task"+(t.done?" done":"");
+      row.innerHTML = `
+        <input type="checkbox" ${t.done?"checked":""} aria-label="complete">
+        <div class="title" style="flex:1">
+          <div><b>${t.title}</b> <span class="muted">• ${t.category}</span></div>
+          <div class="small muted">${t.time?("⏰ "+t.time+" • "):""}${t.duration?labelForDuration(t.duration):""} ${t.points?("• +"+t.points+" pts"):""}</div>
+        </div>
+        <button class="btn ghost" aria-label="delete">🗑️</button>
+      `;
+      const [chk,,delBtn] = row.querySelectorAll('input,div,button');
+      chk.addEventListener('change', e=> toggleTaskDone(t.id, e.target.checked));
+      delBtn.addEventListener('click', ()=> deleteTask(t.id));
+      sec.appendChild(row);
     });
-    document.getElementById("totalPoints").innerText =
-      tasks.reduce((sum, t) => sum + t.points, 0);
-    renderSchedule();
-  }
+    wrap.appendChild(sec);
+  });
+}
 
-  function renderSchedule() {
-    const today = new Date().toISOString().split("T")[0];
-    const scheduleDiv = document.getElementById("schedule");
-    const todayTasks = tasks.filter(t => t.dueDate === today);
-    const upcoming = tasks.filter(t => t.dueDate > today);
+/* ===== Weekly summary (habits + weights) ===== */
+function renderSummary(){
+  const mon = mondayOf(new Date());
+  const days = Array.from({length:7},(_,i)=> fmtDate(addDays(mon,i)));
+  let total = 0, weights = [];
+  days.forEach(ds=>{
+    const e = state.days[ds];
+    total += habitPoints(e, ds);
+    if(e?.weight!=null) weights.push(Number(e.weight));
+  });
+  const avgWt = weights.length? (weights.reduce((a,b)=>a+b,0)/weights.length) : null;
+  const tier = rewardTier(total);
+  const toG1 = avgWt? Math.max(0,(avgWt-GOAL1)).toFixed(1): "—";
+  const toG2 = avgWt? Math.max(0,(avgWt-GOAL2)).toFixed(1): "—";
+  $('#weeklyStats').innerHTML = `
+    <span class="pill">Total: <b>${total}</b></span>
+    <span class="pill">Tier: <b>${tier}</b></span>
+    <span class="pill">Avg Wt: <b>${avgWt?avgWt.toFixed(1):"—"}</b></span>
+    <span class="pill">→199: <b>${toG1}</b> lb</span>
+    <span class="pill">→180: <b>${toG2}</b> lb</span>
+  `;
+}
 
-    scheduleDiv.innerHTML = "<h3>Today</h3>";
-    todayTasks.forEach(t => {
-      scheduleDiv.innerHTML += `<div>✔️ ${t.type}: ${t.name} (${t.points} pts)</div>`;
-    });
-
-    scheduleDiv.innerHTML += "<h3>Upcoming</h3>";
-    upcoming.forEach(t => {
-      scheduleDiv.innerHTML += `<div>📌 ${t.dueDate}: ${t.type} - ${t.name} (${t.points} pts)</div>`;
-    });
-  }
-
-  function deleteTask(i) {
-    tasks.splice(i, 1);
-    saveTasks();
-  }
-
-  function saveTasks() {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-    renderTasks();
-  }
-
-  function exportData() {
-    const blob = new Blob([JSON.stringify(tasks)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "tasks.json";
-    a.click();
-  }
-
-  function importData(event) {
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.onload = e => {
-      tasks = JSON.parse(e.target.result);
-      saveTasks();
-    };
-    reader.readAsText(file);
-  }
-
-  function resetData() {
-    if (confirm("Are you sure?")) {
-      tasks = [];
-      saveTasks();
+/* ===== Export / Import / Wipe ===== */
+$('#exportBtn').addEventListener('click', ()=>{
+  const rows = [["type","title","date","time","category","duration","points","done","doneAt","weight","smoothie","workout","alcohol","hydration","wholefood","mindType","mindPts","taskBucket"]];
+  // tasks
+  state.tasks.forEach(t=>{
+    rows.push(["task", t.title, t.date, t.time, t.category, t.duration, t.points, t.done?1:0, t.doneAt||"", "", "", "", "", "", "", "", "", ""]);
+  });
+  // days
+  Object.keys(state.days).forEach(ds=>{
+    const e = state.days[ds];
+    rows.push(["day","", ds, "", "", "", "", "", "", e.weight??"", e.smoothie?1:0, e.workout??0, e.alcohol?1:0, e.hydration?1:0, e.wholefood?1:0, e.mindType||"", e.mindPts??0, e.taskBucket??0]);
+  });
+  const csv = rows.map(r=> r.map(x=>String(x).replaceAll('"','""')).map(x=>`"${x}"`).join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv"});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "tracker_export.csv"; a.click();
+});
+$('#importFile').addEventListener('change', async e=>{
+  const f = e.target.files[0]; if(!f) return; const txt = await f.text();
+  const lines = txt.trim().split(/\r?\n/); const header = lines.shift();
+  const cols = header.split(",").map(s=>s.replace(/^"|"$/g,''));
+  const idx = n => cols.indexOf(n);
+  const allTasks = [], allDays = {};
+  for (const line of lines){
+    const cells = line.match(/("([^"]|"")*"|[^,]+)/g).map(s=>s.replace(/^"|"$/g,'').replaceAll('""','"'));
+    const type = cells[idx("type")];
+    if (type==="task"){
+      allTasks.push({
+        id: "t_"+Date.now()+Math.random().toString(36).slice(2),
+        title: cells[idx("title")],
+        date: cells[idx("date")],
+        time: cells[idx("time")],
+        category: cells[idx("category")],
+        duration: cells[idx("duration")],
+        points: Number(cells[idx("points")]||0),
+        done: cells[idx("done")]=="1",
+        doneAt: cells[idx("doneAt")]||null
+      });
+    } else if (type==="day"){
+      const ds = cells[idx("date")];
+      allDays[ds] = {
+        weight: cells[idx("weight")]? Number(cells[idx("weight")]) : null,
+        smoothie: cells[idx("smoothie")]=="1",
+        workout: Number(cells[idx("workout")]||0),
+        alcohol: cells[idx("alcohol")]=="1",
+        hydration: cells[idx("hydration")]=="1",
+        wholefood: cells[idx("wholefood")]=="1",
+        mindType: cells[idx("mindType")]||"None",
+        mindPts: Number(cells[idx("mindPts")]||0),
+        taskBucket: Number(cells[idx("taskBucket")]||0)
+      };
     }
   }
+  state.tasks = allTasks; state.days = allDays; save(state);
+  renderToday(); renderWeek(); renderSummary();
+});
+$('#wipeAll').addEventListener('click', ()=>{
+  if(confirm("Delete ALL tracker data?")){ state = {days:{},tasks:[]}; save(state); renderToday(); renderWeek(); renderSummary(); }
+});
 
-  renderTasks();
+/* ===== Init ===== */
+(function init(){
+  // set form to today
+  dateInput.value = todayStr(); loadDayForm(dateInput.value);
+  renderToday(); renderWeek(); renderSummary();
+})();
 </script>
 </body>
 </html>
