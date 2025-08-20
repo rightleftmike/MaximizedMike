@@ -158,15 +158,14 @@
     collection, getDocs, query, where, updateDoc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // >>> REPLACE with your config from Firebase console
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyAxYMNVs6-be8glI1h6dOsHH0t4QfLerlk",
+  authDomain: "optimal-mike-simulation.firebaseapp.com",
+  projectId: "optimal-mike-simulation",
+  storageBucket: "optimal-mike-simulation.firebasestorage.app",
+  messagingSenderId: "170764479086",
+  appId: "1:170764479086:web:6348d27e0876f8cd76947f"
+};
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
